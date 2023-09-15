@@ -1,20 +1,24 @@
 use candid::Principal;
 use ic_cdk_macros::update;
 use ic_cdk::api::management_canister::main::*;
+use ic_cdk_timers::set_timer;
 
 
 #[update]
-fn upgrade() {
+fn upgrade(wasm: Vec<u8>) {
     let canister_id = ic_cdk::id();
-    let wasm = include_bytes!("../../../build/canister_upgreade_backend.wasm");
 
     let install_arg = InstallCodeArgument {
         mode: CanisterInstallMode::Upgrade,
-        wasm_module: wasm.to_vec(),
+        wasm_module: wasm,
         canister_id: canister_id,
         arg: ic_cdk::api::id().as_slice().to_vec(),
     };
-    ic_cdk::notify::<_>(Principal::management_canister(), "install_code", (install_arg,)).unwrap();
+
+    set_timer(std::time::Duration::from_secs(5), ||
+    {
+        ic_cdk::spawn(async move{ ic_cdk::notify::<_>(Principal::management_canister(), "install_code", (install_arg,)).unwrap() })
+    });
 }
 
 #[update]

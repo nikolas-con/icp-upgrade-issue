@@ -1,10 +1,9 @@
 use candid::Principal;
-use ic_cdk_macros::update;
+
 use ic_cdk::api::management_canister::main::*;
-use ic_cdk_timers::set_timer;
 
 
-#[update]
+#[ic_cdk_macros::update]
 fn upgrade(wasm: Vec<u8>) {
     let canister_id = ic_cdk::id();
 
@@ -15,27 +14,21 @@ fn upgrade(wasm: Vec<u8>) {
         arg: ic_cdk::api::id().as_slice().to_vec(),
     };
 
-    set_timer(std::time::Duration::from_secs(5), ||
+    ic_cdk_timers::set_timer(std::time::Duration::from_secs(5), ||
     {
         ic_cdk::spawn(async move{ ic_cdk::notify::<_>(Principal::management_canister(), "install_code", (install_arg,)).unwrap() })
     });
 }
 
-#[update]
-fn version_1() {
-    ic_cdk::println!("version_1");
+#[ic_cdk_macros::query]
+fn version() -> String {
+    "v1".to_owned()
 }
-
-// #[update]
-// fn version_2() {
-//     ic_cdk::println!("version_2");
-// }
 
 #[ic_cdk_macros::pre_upgrade]
 fn pre_upgrade() {
     ic_cdk::println!("pre_upgrade");
 }
-
 
 #[ic_cdk_macros::post_upgrade]
 fn post_upgrade(){

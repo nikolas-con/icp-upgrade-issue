@@ -13,24 +13,24 @@ const WASM: &[u8] = include_bytes!("../../build/backend_v2.wasm");
 #[tokio::main]
 async fn main() {
 
+    // get network
     let args: Vec<String> = env::args().collect();
+    let network_name_default = "local".to_owned();
+    let network_name_opt = args.iter().position(|r| r == "--network").map(|i| args.get(i + 1).unwrap());
 
-    // get network name
+    // get config
     let networks = HashMap::from([
         ("ic".to_owned(), ("https://ic0.app".to_owned(), "canister_ids.json".to_owned())),
         ("local".to_owned(), ("http://127.0.0.1:8000".to_owned(), ".dfx/local/canister_ids.json".to_owned()))
     ]);
-    let network_name_default = "local".to_owned();
-    let network_name_opt = args.iter().position(|r| r == "--network").map(|i| args.get(i + 1).unwrap());
     let network_name = network_name_opt.unwrap_or(&network_name_default);
+    let (agent_url, canister_path) = networks.get(network_name).unwrap();
 
     // get agent
-    let (agent_url, _) = networks.get(network_name).unwrap();
     let agent = Agent::builder().with_url(agent_url.as_str()).build().unwrap();
     agent.fetch_root_key().await.unwrap();
 
     // get canister
-    let (_, canister_path) = networks.get(network_name).unwrap();
     let file = File::open(canister_path).unwrap();
     let json: serde_json::Value = serde_json::from_reader(file).unwrap();
     let networks = json.get("backend").unwrap();

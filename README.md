@@ -1,5 +1,5 @@
 
-### Run locally
+### Commands
 
 ```sh
 dfx start --clean # separate terminal
@@ -15,3 +15,5 @@ dfx canister call backend version # should return v2
 ```
 
 **Build v2:** `./src/backend/build-v2.sh`
+
+**Mainnet:** Run with `--network ic`

@@ -17,7 +17,7 @@ async fn main() {
 
     // get network name
     let networks = HashMap::from([
-        ("ic".to_owned(), ("https://ic0.app".to_owned(), ".canister_ids.json".to_owned())),
+        ("ic".to_owned(), ("https://ic0.app".to_owned(), "canister_ids.json".to_owned())),
         ("local".to_owned(), ("http://127.0.0.1:8000".to_owned(), ".dfx/local/canister_ids.json".to_owned()))
     ]);
     let network_name_default = "local".to_owned();

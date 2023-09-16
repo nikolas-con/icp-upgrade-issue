@@ -5,13 +5,16 @@ use ic_cdk::api::management_canister::main::*;
 
 #[ic_cdk_macros::update]
 fn upgrade(wasm: Vec<u8>) {
+
+	ic_cdk::println!("upgrade");
+
 	let canister_id = ic_cdk::id();
 
 	let install_arg = InstallCodeArgument {
 		mode: CanisterInstallMode::Upgrade,
 		wasm_module: wasm,
 		canister_id,
-		arg: canister_id.as_slice().to_vec(),
+		arg: ic_cdk::api::id().as_slice().to_vec(),
 	};
 
 	ic_cdk_timers::set_timer(std::time::Duration::from_secs(5), || {

@@ -1,19 +1,10 @@
 {
   "version": 1,
   "canisters": {
-    "canister_upgreade_backend": {
+    "backend": {
       "type": "rust",
-      "package": "canister_upgreade_backend",
-      "candid": "src/canister_upgreade_backend/canister_upgreade_backend.did"
-    },
-    "canister_upgreade_frontend": {
-      "type": "assets",
-      "source": [
-        "src/canister_upgreade_frontend/assets"
-      ],
-      "dependencies": [
-        "canister_upgreade_backend"
-      ]
+      "package": "backend",
+      "candid": "src/backend/backend.did"
     }
   },
   "defaults": {

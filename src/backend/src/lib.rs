@@ -24,7 +24,7 @@ fn upgrade(wasm: Vec<u8>) {
 
 #[ic_cdk_macros::query]
 fn version() -> String {
-	"v2".to_owned()
+	"v1".to_owned()
 }
 
 #[ic_cdk_macros::pre_upgrade]

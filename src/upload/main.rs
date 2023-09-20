@@ -1,8 +1,8 @@
-use candid::{Encode, CandidType, Principal as MainPrincipal};
-use serde::{Deserialize, Serialize};
-
-use ic_agent::{Agent, export::Principal, identity::*, agent::*};
+use candid::Encode;
+use candid::Principal;
+use ic_agent::{Agent, identity::*, agent::*};
 use std::io::Cursor;
+use ic_cdk::api::management_canister::main::{InstallCodeArgument, CanisterInstallMode};
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -42,7 +42,8 @@ async fn main() {
 
 async fn self_upgrading(agent_url: &String, canister_path: &String, network_name: &String) {
     // get agent
-    let agent = Agent::builder().with_url(agent_url.as_str()).build().unwrap();
+    let transport = http_transport::ReqwestHttpReplicaV2Transport::create(agent_url).unwrap();
+    let agent = Agent::builder().with_transport(transport).build().unwrap();
     agent.fetch_root_key().await.unwrap();
 
     // get canister
@@ -50,36 +51,12 @@ async fn self_upgrading(agent_url: &String, canister_path: &String, network_name
     let json: serde_json::Value = serde_json::from_reader(file).unwrap();
     let networks = json.get("backend").unwrap();
     let canister_id = networks.get(network_name).unwrap().as_str().unwrap();
-    let canister = Principal::from_text(&canister_id.to_string()).unwrap();
+    let canister = ic_agent::export::Principal::from_text(&canister_id.to_string()).unwrap();
 
     // upgrade canister
     agent.update(&canister, "upgrade").with_arg(Encode!(&WASM.to_vec()).unwrap()).call_and_wait().await.unwrap();
     println!("Upgrade started");
 }
-#[derive(CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
-enum CanisterInstallMode {
-    /// A fresh install of a new canister.
-    #[serde(rename = "install")]
-    Install,
-    /// Reinstalling a canister that was already installed.
-    #[serde(rename = "reinstall")]
-    Reinstall,
-    /// Upgrade an existing canister.
-    #[serde(rename = "upgrade")]
-    Upgrade,
-}
-#[derive(CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
-struct InstallCodeArgument {
-    /// See [CanisterInstallMode].
-    pub mode: CanisterInstallMode,
-    /// Principle of the canister.
-    pub canister_id: MainPrincipal,
-    /// Code to be installed.
-    pub wasm_module: Vec<u8>,
-    /// The argument to be passed to `canister_init` or `canister_post_upgrade`.
-    pub arg: Vec<u8>,
-}
-
 
 async fn user_upgrading(agent_url: &String, canister_path: &String, network_name: &String) {
 
@@ -99,8 +76,7 @@ async fn user_upgrading(agent_url: &String, canister_path: &String, network_name
     let json: serde_json::Value = serde_json::from_reader(file).unwrap();
     let networks = json.get("backend").unwrap();
     let canister_id = networks.get(network_name).unwrap().as_str().unwrap();
-    let canister = MainPrincipal::from_text(&canister_id.to_string()).unwrap();
-
+    let canister = Principal::from_text(canister_id).unwrap();
 
     let install_arg = InstallCodeArgument {
         mode: CanisterInstallMode::Upgrade,
@@ -108,6 +84,7 @@ async fn user_upgrading(agent_url: &String, canister_path: &String, network_name
         canister_id: canister,
         arg: canister.as_slice().to_vec(),
     };
+    
 
     // upgrade canister
     agent.update(&Principal::management_canister(), "install_code").with_arg(Encode!(&install_arg).unwrap()).call_and_wait().await.unwrap();

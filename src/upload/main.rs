@@ -13,7 +13,7 @@ use std::fs;
 const WASM: &[u8] = include_bytes!("../../build/backend_v2.wasm");
 
 // cargo run -p upload -- --command user-upgrading
-// cargo run -p upload -- --network ic --command self-upgrading
+// cargo run -p upload -- --network ic --command user-upgrading
 #[tokio::main]
 async fn main() {
     // get network
@@ -82,11 +82,10 @@ async fn user_upgrading(agent_url: &String, canister_path: &String, network_name
         mode: CanisterInstallMode::Upgrade,
         wasm_module: WASM.to_vec(),
         canister_id: canister,
-        arg: canister.as_slice().to_vec(),
+        arg: vec![],
     };
-    
 
     // upgrade canister
-    agent.update(&Principal::management_canister(), "install_code").with_arg(Encode!(&install_arg).unwrap()).call_and_wait().await.unwrap();
+    agent.update(&Principal::management_canister(), "install_code").with_effective_canister_id(canister).with_arg(Encode!(&install_arg).unwrap()).call_and_wait().await.unwrap();
     println!("Upgrade started");
 }

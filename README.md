@@ -10,7 +10,7 @@ dfx canister call backend version # should return v1
 dfx canister call aaaaa-aa update_settings '(record { canister_id = principal "'$(dfx canister id backend)'"; settings = record { controllers = opt vec { principal "'$(dfx identity get-principal)'"; principal "'$(dfx canister id backend)'"; }; }; })'
 dfx canister status backend
 
-cargo run -p upload
+cargo run -p upload -- --command self-upgrading
 dfx canister call backend version # should return v2
 ```
 
